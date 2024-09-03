@@ -1,5 +1,6 @@
 package de.androidcrypto.android_hce_beginner_app;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -20,5 +21,12 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+
+        Intent intent = new Intent(this, MyHostApduService.class);
+        //intent.putExtra("ndefMessage", test);
+        System.out.println("*** start service ***");
+        startService(intent);
+
     }
 }

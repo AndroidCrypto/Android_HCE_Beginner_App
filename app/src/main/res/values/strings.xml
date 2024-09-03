@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">Android_HCE_Beginner_App</string>
+    <string name="app_name">HCE Beginner App</string>
+    <string name="servicedesc">HCE Service Beginner</string>
+    <string name="aiddescription">HCE AID Description</string>
 </resources>

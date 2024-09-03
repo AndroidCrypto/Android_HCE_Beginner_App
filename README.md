@@ -2,7 +2,8 @@
 
 ## Host-based card emulation overview
 
-See the full document here: https://developer.android.com/develop/connectivity/nfc/hce
+I will quote a lot of times from this official document, see the full document here: 
+https://developer.android.com/develop/connectivity/nfc/hce
 
 *Android 4.4 and higher provide an additional method of **card emulation** that doesn't involve a secure element, 
 called **host-based card emulation**. This allows any Android application to emulate a card and talk directly 
@@ -85,7 +86,7 @@ and will stop any further communication with out app.
 
 These are the basic steps you need to implement a HCE application on your device:
 
-1) Create a HCE service class that is implementing the **HostApduService**
+1) Create a HCE service class that is extending the **HostApduService**
 2) Register your HCE service in AndroidManifest.xml
 3) Create an XML-file in your resources that defines the application identifier your HCE application in working on
 4) Register the XML-file in AndroidManifest.xml to link the AID with your own HCE service
