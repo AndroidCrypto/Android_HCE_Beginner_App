@@ -105,6 +105,20 @@ public class MyHostApduService extends HostApduService {
     private static final byte[] READ_CAPABILITY_CONTAINER_RESPONSE = {
             (byte)0x00, (byte)0x0F, // CCLEN length of the CC file
             (byte)0x20, // Mapping Version 2.0
+            (byte)0xFF, (byte)0xFF, // MLe maximum 59 bytes R-APDU data size
+            (byte)0xFF, (byte)0xFF, // MLc maximum 52 bytes C-APDU data size
+            (byte)0x04, // T field of the NDEF File Control TLV
+            (byte)0x06, // L field of the NDEF File Control TLV
+            (byte)0xE1, (byte)0x04, // File Identifier of NDEF file
+            (byte)0xFF, (byte)0xFE, // Maximum NDEF file size of 50 bytes
+            (byte)0x00, // Read access without any security
+            (byte)0xFF, // Write access without any security
+            (byte)0x90, (byte)0x00 // A_OKAY
+    };
+
+    private static final byte[] READ_CAPABILITY_CONTAINER_RESPONSE_ORG = {
+            (byte)0x00, (byte)0x0F, // CCLEN length of the CC file
+            (byte)0x20, // Mapping Version 2.0
             (byte)0x00, (byte)0x3B, // MLe maximum 59 bytes R-APDU data size
             (byte)0x00, (byte)0x34, // MLc maximum 52 bytes C-APDU data size
             (byte)0x04, // T field of the NDEF File Control TLV
@@ -204,6 +218,12 @@ public class MyHostApduService extends HostApduService {
         // The following flow is based on Appendix E "Example of Mapping Version 2.0 Command Flow"
         // in the NFC Forum specification
         Log.i(TAG, "Received APDU: " + ByteArrayToHexString(commandApdu));
+        // see https://github.com/underwindfall/NFCAndroid/blob/master/app/src/main/java/com/qifan/nfcbank/cardEmulation/KHostApduService.kt
+        /*
+        if (commandApdu.sliceArray(0..1).contentEquals(NDEF_READ_BINARY)) {
+            // do nothing
+        }
+         */
 
         // First command: NDEF Tag Application select (Section 5.5.2 in NFC Forum spec)
         if (Arrays.equals(SELECT_APDU_TagInfo, commandApdu)) {
@@ -230,6 +250,7 @@ public class MyHostApduService extends HostApduService {
         // Fifth command:  ReadBinary, read NLEN field
         } else if (Arrays.equals(NDEF_READ_BINARY_NLEN_APDU, commandApdu)) {
             Log.i(TAG, "This is: 05 NDEF_READ_BINARY_NLEN_APDU");
+            /*
             byte[] start = {
                     (byte)0x00
             };
@@ -238,6 +259,11 @@ public class MyHostApduService extends HostApduService {
             System.arraycopy(start, 0, response, 0, start.length);
             System.arraycopy(NDEF_URI_LEN, 0, response, start.length, NDEF_URI_LEN.length);
             System.arraycopy(SELECT_OK_SW, 0, response, start.length + NDEF_URI_LEN.length, SELECT_OK_SW.length);
+            */
+            // new as in Underwindfall
+            byte[] response = new byte[NDEF_URI_LEN.length + SELECT_OK_SW.length];
+            System.arraycopy(NDEF_URI_LEN, 0, response, 0, NDEF_URI_LEN.length);
+            System.arraycopy(SELECT_OK_SW, 0, response, NDEF_URI_LEN.length, SELECT_OK_SW.length);
             Log.i(TAG, "NDEF_READ_BINARY_NLEN triggered. Our Response: " + ByteArrayToHexString(response));
             return response;
 
@@ -277,6 +303,8 @@ public class MyHostApduService extends HostApduService {
             //return "Can I help you?".getBytes();
             return UNKNOWN_CMD_SW;
         }
+
+
 
         /**
          * Build APDU for SELECT AID command. This command indicates which service a reader is
