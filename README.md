@@ -21,8 +21,8 @@ This repository is accompanied by a tutorial on medium.com, please find the arti
 
 ## Requirements to follow the tutorial
 
-As our Android device will act as a real NFC tag, you will need a second NFC-Reader (e.g. a second Android device) to run the tests, 
-because when an Android device is in HCE mode it cannot read "itself" (on the  same device). Unfortunately, not all Android devices, 
+As our Android device will act as a real NFC tag, you will need a **second NFC-Reader** (e.g. a second Android device) to run the tests, 
+because when an Android device is in HCE mode it cannot read "itself" (on the same device). Unfortunately, not all Android devices, 
 even with an NFC reader, are enabled for HCE, so you need to check that your device is capable to run HCE. You can run a simple check 
 using "**FEATURE_NFC_HOST_CARD_EMULATION**" to verify that you can run HCE. 
 
@@ -38,6 +38,23 @@ on MacOS/Silicon.
 I'm receiving a lot of questions like *"why does my HCE implementation does not work and is not recognized by another device ?"*. 
 In most of the cases the reason for the failure is that both devices use a different **Application Identifier" ("**AID**"). In the 
 end, that means they speak "different languages" and don't understand each other.
+
+From Wikipedia: *An application identifier (AID) is used to address an application in the card or Host Card Emulation (HCE) if 
+delivered without a card. An AID consists of a registered application provider identifier (RID) of five bytes, which is issued 
+by the ISO/IEC 7816-5 registration authority. This is followed by a proprietary application identifier extension (PIX), which 
+enables the application provider to differentiate among the different applications offered. The AID is printed on all EMV 
+cardholder receipts. Card issuers can alter the application name from the name of the card network.*
+
+**Registered Application Identifier**: You cannot choose an Application identifier (AID) on your own because then you may get 
+trouble when working with established reader infrastructure. There are three groups of AIDs:
+- Category "A": That are international registered AIDs, mainly for Payment Provider like Mastercard or Visa Card. Please don't choose an AID from this category !
+- Category "D": That are national registered AIDs, e.g. for Payment Provider like local bank cards or for accessing NFC tags. Please don't choose an AID from this category !
+- Category "F": That are proprietary (non registered) AIDs, e.g. for this application.
+
+Please find a very extensive list of existing AID's for payment cards here: https://www.eftlab.com/knowledge-base/complete-list-of-application-identifiers-aid
+
+Please do not use AIDs with a length less than 5 as they won't get routed on Android devices properly. The maximum length of 
+an AID is 16 bytes (see https://stackoverflow.com/a/27620724/8166854 for more details).
 
 ### Run a HCE services in the background
 

@@ -1,5 +1,12 @@
 package de.androidcrypto.android_hce_beginner_app;
 
+import static android.content.Context.VIBRATOR_SERVICE;
+
+import android.app.Activity;
+import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+
 public class Utils {
 
     public static String bytesToHexNpe(byte[] bytes) {
@@ -18,6 +25,18 @@ public class Utils {
                     + Character.digit(s.charAt(i + 1), 16));
         }
         return data;
+    }
+
+    public static void doVibrate(Activity activity) {
+        if (activity != null) {
+            // Make a Sound
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ((Vibrator) activity.getSystemService(VIBRATOR_SERVICE)).vibrate(VibrationEffect.createOneShot(50, 10));
+            } else {
+                Vibrator v = (Vibrator) activity.getSystemService(VIBRATOR_SERVICE);
+                v.vibrate(50);
+            }
+        }
     }
 
 }
