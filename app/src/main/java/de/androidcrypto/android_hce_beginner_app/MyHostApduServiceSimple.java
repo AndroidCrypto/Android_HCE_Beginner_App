@@ -55,122 +55,20 @@ public class MyHostApduServiceSimple extends HostApduService {
     private static final String SELECT_APDU_HEADER = "00A40400";
     // Format: [Class | Instruction | Parameter 1 | Parameter 2]
     private static final String GET_DATA_APDU_HEADER = "00CA0000";
+    private static final String PUT_DATA_APDU_HEADER = "00DA0000";
     // "OK" status word sent in response to SELECT AID command (0x9000)
     private static final byte[] SELECT_OK_SW = hexStringToByteArray("9000");
     // "UNKNOWN" status word sent in response to invalid APDU command (0x0000)
     private static final byte[] UNKNOWN_CMD_SW = hexStringToByteArray("0000");
-    private static final byte[] SELECT_APDU = buildSelectApdu(SAMPLE_LOYALTY_CARD_AID);
-    private static final byte[] GET_DATA_APDU = buildGetDataApdu();
 
+
+    private byte[] fileContent01 = "HCE Beginner App 1".getBytes(StandardCharsets.UTF_8);
+    private byte[] fileContent02 = "HCE Beginner App 2".getBytes(StandardCharsets.UTF_8);
+    private byte[] fileContentUnknown = "HCE Beginner App Unknown".getBytes(StandardCharsets.UTF_8);
     // Commands for each step
 
 
     private static final byte[] SELECT_APDU_TagInfo = hexStringToByteArray("00A4040007D276000085010100");
-    private static final byte[] SELECT_APDU_TagInfo_OLD = {
-            (byte) 0x00, // CLA	- Class - Class of instruction
-            (byte) 0xA4, // INS	- Instruction - Instruction code
-            (byte) 0x04, // P1	- Parameter 1 - Instruction parameter 1
-            (byte) 0x00, // P2	- Parameter 2 - Instruction parameter 2
-            (byte) 0x07, // Lc field	- Number of bytes present in the data field of the command
-            //(byte)0xF0, (byte)0x39, (byte)0x41, (byte)0x48, (byte)0x14, (byte)0x81, (byte)0x00, // NDEF Tag Application name
-            (byte) 0xD2, (byte) 0x76, (byte) 0x00, (byte) 0x00, (byte) 0x85, (byte) 0x01, (byte) 0x01, // NDEF Tag Application name
-            (byte) 0x00  // Le field	- Maximum number of bytes expected in the data field of the response to the command
-    };
-
-    private static final byte[] GET_COMPATIBILITY_CONTAINER_APDU_OLD = hexStringToByteArray("00A4000C02E103");
-    private static final byte[] GET_CAPABILITY_CONTAINER_APDU = {
-            (byte) 0x00, // CLA	- Class - Class of instruction
-            (byte) 0xa4, // INS	- Instruction - Instruction code
-            (byte) 0x00, // P1	- Parameter 1 - Instruction parameter 1
-            (byte) 0x0c, // P2	- Parameter 2 - Instruction parameter 2
-            (byte) 0x02, // Lc field	- Number of bytes present in the data field of the command
-            (byte) 0xe1, (byte) 0x03 // file identifier of the CC file
-    };
-
-    private static final byte[] READ_CAPABILITY_CONTAINER_APDU = {
-            (byte) 0x00, // CLA	- Class - Class of instruction
-            (byte) 0xb0, // INS	- Instruction - Instruction code
-            (byte) 0x00, // P1	- Parameter 1 - Instruction parameter 1
-            (byte) 0x00, // P2	- Parameter 2 - Instruction parameter 2
-            (byte) 0x0f  // Lc field	- Number of bytes present in the data field of the command
-    };
-
-    // In the scenario that we have done a CC read, the same byte[] match
-    // for ReadBinary would trigger and we don't want that in succession
-    private boolean READ_CAPABILITY_CONTAINER_CHECK = false;
-
-    private static final byte[] READ_CAPABILITY_CONTAINER_RESPONSE = {
-            (byte) 0x00, (byte) 0x0F, // CCLEN length of the CC file
-            (byte) 0x20, // Mapping Version 2.0
-            (byte) 0xFF, (byte) 0xFF, // MLe maximum 59 bytes R-APDU data size
-            (byte) 0xFF, (byte) 0xFF, // MLc maximum 52 bytes C-APDU data size
-            (byte) 0x04, // T field of the NDEF File Control TLV
-            (byte) 0x06, // L field of the NDEF File Control TLV
-            (byte) 0xE1, (byte) 0x04, // File Identifier of NDEF file
-            (byte) 0xFF, (byte) 0xFE, // Maximum NDEF file size of 50 bytes
-            (byte) 0x00, // Read access without any security
-            (byte) 0xFF, // Write access without any security
-            (byte) 0x90, (byte) 0x00 // A_OKAY
-    };
-
-    private static final byte[] READ_CAPABILITY_CONTAINER_RESPONSE_ORG = {
-            (byte) 0x00, (byte) 0x0F, // CCLEN length of the CC file
-            (byte) 0x20, // Mapping Version 2.0
-            (byte) 0x00, (byte) 0x3B, // MLe maximum 59 bytes R-APDU data size
-            (byte) 0x00, (byte) 0x34, // MLc maximum 52 bytes C-APDU data size
-            (byte) 0x04, // T field of the NDEF File Control TLV
-            (byte) 0x06, // L field of the NDEF File Control TLV
-            (byte) 0xE1, (byte) 0x04, // File Identifier of NDEF file
-            (byte) 0x00, (byte) 0x32, // Maximum NDEF file size of 50 bytes
-            (byte) 0x00, // Read access without any security
-            (byte) 0x00, // Write access without any security
-            (byte) 0x90, (byte) 0x00 // A_OKAY
-    };
-
-    private static final byte[] NDEF_SELECT_APDU = {
-            (byte) 0x00, // CLA	- Class - Class of instruction
-            (byte) 0xa4, // Instruction byte (INS) for Select command
-            (byte) 0x00, // Parameter byte (P1), select by identifier
-            (byte) 0x0c, // Parameter byte (P1), select by identifier
-            (byte) 0x02, // Lc field	- Number of bytes present in the data field of the command
-            (byte) 0xE1, (byte) 0x04 // file identifier of the NDEF file retrieved from the CC file
-    };
-
-    private static final byte[] NDEF_READ_BINARY_NLEN_APDU = {
-            (byte) 0x00, // Class byte (CLA)
-            (byte) 0xb0, // Instruction byte (INS) for ReadBinary command
-            (byte) 0x00, (byte) 0x00, // Parameter byte (P1, P2), offset inside the CC file
-            (byte) 0x02  // Le field
-    };
-
-    private static final byte[] NDEF_READ_BINARY_GET_NDEF_APDU = {
-            (byte) 0x00, // Class byte (CLA)
-            (byte) 0xb0, // Instruction byte (INS) for ReadBinary command
-            (byte) 0x00, (byte) 0x02, // Parameter byte (P1, P2), offset inside the CC file
-            (byte) 0x13  //  Le field
-    };
-
-    private static final byte[] NDEF_READ_BINARY_GET_NDEF_APDU_ORG = {
-            (byte) 0x00, // Class byte (CLA)
-            (byte) 0xb0, // Instruction byte (INS) for ReadBinary command
-            (byte) 0x00, (byte) 0x00, // Parameter byte (P1, P2), offset inside the CC file
-            (byte) 0x0f  //  Le field
-    };
-
-
-    private byte[] NDEF_URI_BYTES = getNdefMessage("Hello world!");
-    private byte[] NDEF_URI_LEN = BigInteger.valueOf(NDEF_URI_BYTES.length).toByteArray();
-
-    private byte[] getNdefMessage(String ndefData) {
-        if (ndefData.length() == 0) {
-            return new byte[0];
-        }
-        NdefMessage ndefMessage;
-        NdefRecord ndefRecord;
-        ndefRecord = NdefRecord.createTextRecord("en", ndefData);
-        ndefMessage = new NdefMessage(ndefRecord);
-        return ndefMessage.toByteArray();
-    }
 
     /**
      * Called if the connection to the NFC card is lost, in order to let the application know the
@@ -238,12 +136,55 @@ public class MyHostApduServiceSimple extends HostApduService {
         // Second command: GetData command, here returning any data and not from file01
         } else if (arraysStartWith(commandApdu, hexStringToByteArray(GET_DATA_APDU_HEADER))) {
             Log.i(TAG, "This is: 02 GET_DATA_APDU");
-            byte[] dataToReturn = "HCE Beginner App".getBytes(StandardCharsets.UTF_8);
-            byte[] response = new byte[dataToReturn.length + SELECT_OK_SW.length];
-            System.arraycopy(dataToReturn, 0, response, 0, dataToReturn.length);
-            System.arraycopy(SELECT_OK_SW, 0, response, dataToReturn.length, SELECT_OK_SW.length);
+
+            // get the file number from commandApdu
+            int fileNumber;
+            byte[] fileContent;
+            if (commandApdu.length == 7) {
+                fileNumber = (int) commandApdu[5];
+                if (fileNumber == 1) {
+                    fileContent = fileContent01.clone();
+                } else if (fileNumber == 2) {
+                    fileContent = fileContent02.clone();
+                } else {
+                    fileContent = fileContentUnknown.clone();
+                }
+            } else {
+                fileContent = "Unknown Request".getBytes(StandardCharsets.UTF_8);
+            }
+            byte[] response = new byte[fileContent.length + SELECT_OK_SW.length];
+            System.arraycopy(fileContent, 0, response, 0, fileContent.length);
+            System.arraycopy(SELECT_OK_SW, 0, response, fileContent.length, SELECT_OK_SW.length);
             Log.i(TAG, "GET_DATA_APDU Our Response: " + byteArrayToHexString(response));
             return response;
+        // write data to the emulated tag
+        } else if (arraysStartWith(commandApdu, hexStringToByteArray(PUT_DATA_APDU_HEADER))) {
+            Log.i(TAG, "This is: 03 PUT_DATA_APDU");
+            // get the data length and file number from commandApdu
+            int dataLength;
+            int fileNumber;
+            byte[] fileContent;
+            if (commandApdu.length >= 7) {
+                dataLength = (int) commandApdu[4];
+                fileNumber = (int) commandApdu[5];
+                // System.out.println("commandApdu l: " + commandApdu.length + " data l: " + dataLength + " fnr: " + fileNumber);
+                // get the data
+                if (commandApdu.length != (6 + dataLength)) {
+                    return UNKNOWN_CMD_SW;
+                }
+                fileContent = Arrays.copyOfRange(commandApdu, 6, (5 + dataLength));
+                Log.i(TAG,  "fileNr: " + fileNumber +  " content: " + new String(fileContent, StandardCharsets.UTF_8));
+                if (fileNumber == 1) {
+                    fileContent01 = fileContent.clone();
+                } else if (fileNumber == 2) {
+                    fileContent02 = fileContent.clone();
+                } else {
+                    fileContentUnknown = fileContent.clone();
+                }
+            } else {
+                fileContent = "Unknown Request".getBytes(StandardCharsets.UTF_8);
+            }
+            return SELECT_OK_SW;
 
             // We're doing something outside our scope
         } else

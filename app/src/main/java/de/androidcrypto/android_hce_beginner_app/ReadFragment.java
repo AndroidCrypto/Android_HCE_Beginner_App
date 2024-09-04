@@ -153,14 +153,80 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
             }
 
             // asking for data in file 01
-            byte[] file01 = hexStringToByteArray("01");
-            command = getDataApdu(file01);
+            //byte[] file01 = hexStringToByteArray("01");
+            //command = getDataApdu(file01);
+            int fileNumber01 = 1;
+            command = getDataApdu(fileNumber01);
             response = isoDep.transceive(command);
             writeToUiAppend("getDataApdu with file01: " + bytesToHexNpe(command));
             writeToUiAppend("response: " + bytesToHexNpe(response));
 
             if (response == null) {
                 writeToUiAppend("getDataApdu with file01 fails (null)");
+            } else {
+                writeToUiAppend("response length: " + response.length + " data: " + bytesToHexNpe(response));
+            }
+            // verify response
+            if (checkResponse(response)) {
+                writeToUiAppend(new String(returnDataBytes(response), StandardCharsets.UTF_8));
+                Log.i(TAG, "response: " + bytesToHexNpe(returnDataBytes(response)));
+            } else {
+                writeToUiAppend("The tag returned NOT OK");
+                Log.i(TAG, "The tag returned NOT OK");
+            }
+
+            // read previous content of file 02
+            int fileNumber02 = 2;
+            command = getDataApdu(fileNumber02);
+            response = isoDep.transceive(command);
+            writeToUiAppend("getDataApdu with file02: " + bytesToHexNpe(command));
+            writeToUiAppend("response: " + bytesToHexNpe(response));
+
+            if (response == null) {
+                writeToUiAppend("getDataApdu with file02 fails (null)");
+            } else {
+                writeToUiAppend("response length: " + response.length + " data: " + bytesToHexNpe(response));
+            }
+            // verify response
+            if (checkResponse(response)) {
+                writeToUiAppend(new String(returnDataBytes(response), StandardCharsets.UTF_8));
+                Log.i(TAG, "response: " + bytesToHexNpe(returnDataBytes(response)));
+            } else {
+                writeToUiAppend("The tag returned NOT OK");
+                Log.i(TAG, "The tag returned NOT OK");
+            }
+
+            // write data to fileNumber 02
+
+            // command = getDataApdu(filenumber02);
+            byte[] dataToWrite = "New Content in fileNumber 02".getBytes(StandardCharsets.UTF_8);
+            command = putDataApdu(fileNumber02, dataToWrite);
+            response = isoDep.transceive(command);
+            writeToUiAppend("putDataApdu with file02: " + bytesToHexNpe(command));
+            writeToUiAppend("response: " + bytesToHexNpe(response));
+
+            if (response == null) {
+                writeToUiAppend("putDataApdu with file02 fails (null)");
+            } else {
+                writeToUiAppend("response length: " + response.length + " data: " + bytesToHexNpe(response));
+            }
+            // verify response
+            if (checkResponse(response)) {
+                writeToUiAppend("SUCCESS");
+                Log.i(TAG, "response: " + bytesToHexNpe(returnDataBytes(response)));
+            } else {
+                writeToUiAppend("The tag returned NOT OK");
+                Log.i(TAG, "The tag returned NOT OK");
+            }
+
+            // read updated content
+            command = getDataApdu(fileNumber02);
+            response = isoDep.transceive(command);
+            writeToUiAppend("getDataApdu with file02: " + bytesToHexNpe(command));
+            writeToUiAppend("response: " + bytesToHexNpe(response));
+
+            if (response == null) {
+                writeToUiAppend("getDataApdu with file02 fails (null)");
             } else {
                 writeToUiAppend("response length: " + response.length + " data: " + bytesToHexNpe(response));
             }
@@ -225,6 +291,31 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
         commandApdu[3] = (byte) 0x00;  // P2
         commandApdu[4] = (byte) (file.length & 0x0FF);       // Lc
         System.arraycopy(file, 0, commandApdu, 5, file.length);
+        commandApdu[commandApdu.length - 1] = (byte) 0x00;  // Le
+        return commandApdu;
+    }
+
+    private byte[] getDataApdu(int file) {
+        byte[] commandApdu = new byte[6 + 1]; // 6 + byte length
+        commandApdu[0] = (byte) 0x00;  // CLA
+        commandApdu[1] = (byte) 0xCA;  // INS
+        commandApdu[2] = (byte) 0x00;  // P1
+        commandApdu[3] = (byte) 0x00;  // P2
+        commandApdu[4] = (byte) 0x01;  // Lc
+        commandApdu[5] = (byte) (file & 0x0FF);
+        commandApdu[commandApdu.length - 1] = (byte) 0x00;  // Le
+        return commandApdu;
+    }
+
+    private byte[] putDataApdu(int fileNumber, byte[] dataToWrite) {
+        byte[] commandApdu = new byte[6 + 1 + dataToWrite.length]; // 6 + fileNumber + dataToWrite
+        commandApdu[0] = (byte) 0x00;  // CLA
+        commandApdu[1] = (byte) 0xDA;  // INS
+        commandApdu[2] = (byte) 0x00;  // P1
+        commandApdu[3] = (byte) 0x00;  // P2
+        commandApdu[4] = (byte) ((dataToWrite.length + 1) & 0x0FF);       // Lc
+        commandApdu[5] = (byte) (fileNumber & 0x0FF); // file number
+        System.arraycopy(dataToWrite, 0, commandApdu, 6, dataToWrite.length); // dataToWrite
         commandApdu[commandApdu.length - 1] = (byte) 0x00;  // Le
         return commandApdu;
     }

@@ -56,13 +56,13 @@ Please find a very extensive list of existing AID's for payment cards here: http
 Please do not use AIDs with a length less than 5 as they won't get routed on Android devices properly. The maximum length of 
 an AID is 16 bytes (see https://stackoverflow.com/a/27620724/8166854 for more details).
 
-This app uses the AID **F2233445566**.
+This app uses the AID **F22334455667**.
 
 ### Run a HCE services in the background
 
 Most people believe, that the emulated tag is run by your app, but that is not true. Of course, you need to run an app for the first 
-time to start a (HCE) service in the background, but from now on all communication is done between your service and the remote NFC remote 
-reader. Your app will get no further updates about the communication or and information that data is exchanged. You need to implement 
+time to start a (HCE) service in the background, but from now on all communication is done **between your service and the remote NFC reader**. 
+Your app will get no further updates about the communication or and information that data is exchanged. You need to implement 
 an interface to get informed about any updates. For that reason it not very easy to monitor your running app from "inside" your app.
 
 Your app will still persistent to work, even when you close your app with the Android Taskmanager - because it is a service.
@@ -100,6 +100,41 @@ b) The  NFC Smart Card answers the  command by sending a **response APDU** to th
 In our case, our HCE app needs to response to a command APDU as our app is acting like a real NFC Smart Card. As each NFC Smartcard follows a card 
 specific protocol it is important that our HCE app acts like the same. If not - the real NFC Reader will think "that is not the NFC tag I expected" 
 and will stop any further communication with out app.
+
+### ISO 7816-4 Section 6 - Basic Interindustry Commands
+
+To understand the commands between an NFC reader and a tag (real or emulated one) you should get familiar with the ISO 7816-4 commands. 
+In this tutorial I'm using just 3 of them:
+
+**SELECT APDU**:
+
+**GET DATA APDU**:
+
+**PUT DATA APDU**:
+
+see: https://cardwerk.com/smart-card-standard-iso7816-4-section-6-basic-interindustry-commands/
+
+PUT DATA command
+```plaintext
+PUT DATA command APDU
+CLA	        00h
+INS	        DAh
+P1          00h
+P2	        00h
+Lc field	Length of the subsequent data field
+Data field	Parameters and data to be written
+Le field	Empty
+```
+
+## UID of an emulated NFC tag
+
+If you run my app you will notice that I'm exposing the tag UID in the Logfile within the Reader app. This 
+**UID is exact 4 bytes long and random**. This is a security feature to prevent privacy to the user - this 
+way a large NFC reader infrastructure (think of a "Smart City" with hundreds of NFC readers) is not being 
+able to track a user (better: his NFC card). There is no workaround to change the behaviour of a modern 
+Android device to get a static UID each time you tap the emulated tag to an NFC reader, sorry.
+
+The only way would be to store the UID in a "read only" file on the tag to get a unambiguously tag identification.
 
 ## Steps to create a HCE application
 
