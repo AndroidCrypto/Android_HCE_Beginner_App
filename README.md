@@ -56,6 +56,8 @@ Please find a very extensive list of existing AID's for payment cards here: http
 Please do not use AIDs with a length less than 5 as they won't get routed on Android devices properly. The maximum length of 
 an AID is 16 bytes (see https://stackoverflow.com/a/27620724/8166854 for more details).
 
+This app uses the AID **F2233445566**.
+
 ### Run a HCE services in the background
 
 Most people believe, that the emulated tag is run by your app, but that is not true. Of course, you need to run an app for the first 

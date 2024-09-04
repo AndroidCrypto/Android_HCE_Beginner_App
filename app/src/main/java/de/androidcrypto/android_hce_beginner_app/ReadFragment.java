@@ -1,6 +1,8 @@
 package de.androidcrypto.android_hce_beginner_app;
 
+import static de.androidcrypto.android_hce_beginner_app.Utils.bytesToHexNpe;
 import static de.androidcrypto.android_hce_beginner_app.Utils.doVibrate;
+import static de.androidcrypto.android_hce_beginner_app.Utils.hexStringToByteArray;
 
 import android.content.ComponentName;
 import android.content.Intent;
@@ -10,6 +12,7 @@ import android.media.MediaPlayer;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.cardemulation.CardEmulation;
+import android.nfc.tech.IsoDep;
 import android.nfc.tech.NfcA;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -24,10 +27,12 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -70,16 +75,9 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
     }
 
     private TextView readResult;
-    private TextView readSpan;
-    private TextView readSpanLegend;
-    private RadioButton rbNoAuth, rbDefaultAuth, rbCustomAuth;
-    private RadioButton rbNoCounterIncrease, rbCounterIncrease;
     private View loadingLayout;
     private String outputString = ""; // used for the UI output
     private NfcAdapter mNfcAdapter;
-    private NfcA nfcA;
-    private boolean isTagUltralight = false;
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -94,13 +92,6 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         readResult = getView().findViewById(R.id.tvReadResult);
-        readSpan = getView().findViewById(R.id.tvSpan);
-        readSpanLegend = getView().findViewById(R.id.tvSpanLegend);
-        rbNoAuth = getView().findViewById(R.id.rbNoAuth);
-        rbDefaultAuth = getView().findViewById(R.id.rbDefaultAuth);
-        rbCustomAuth = getView().findViewById(R.id.rbCustomAuth);
-        rbNoCounterIncrease = getView().findViewById(R.id.rbNoCounterIncrease);
-        rbCounterIncrease = getView().findViewById(R.id.rbCounterIncrease);
         loadingLayout = getView().findViewById(R.id.loading_layout);
     }
 
@@ -116,14 +107,8 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
     // Use `runOnUiThread` method to change the UI from this method
     @Override
     public void onTagDiscovered(Tag tag) {
-        // Read and or write to Tag here to the appropriate Tag Technology type class
-        // in this example the card should be an NfcA Technology Type
-
         System.out.println("NFC tag discovered");
         playSinglePing();
-
-        boolean success;
-        boolean authSuccess = false;
 
         setLoadingLayoutVisibility(true);
         outputString = "";
@@ -132,154 +117,77 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
             readResult.setBackgroundColor(getResources().getColor(R.color.white));
             readResult.setText("");
         });
-/*
-        // you should have checked that this device is capable of working with Mifare Ultralight tags, otherwise you receive an exception
-        nfcA = NfcA.get(tag);
 
-        if (nfcA == null) {
-            writeToUiAppend("The tag is not readable with NfcA classes, sorry");
+        IsoDep isoDep = IsoDep.get(tag);
+        if (isoDep == null) {
+            Log.e(TAG, "isoDep is NULL, aborted");
+            writeToUiAppend("The tag is not readable with IsoDep class, sorry");
             writeToUiFinal(readResult);
             setLoadingLayoutVisibility(false);
             returnOnNotSuccess();
             return;
-        }
-
-        // get card details
-        byte[] tagId = nfcA.getTag().getId();
-        String[] techList = nfcA.getTag().getTechList();
-        StringBuilder sb = new StringBuilder();
-        sb.append("Technical Data of the Tag").append("\n");
-        sb.append("Tag ID: ").append(bytesToHexNpe(tagId)).append("\n");
-        sb.append("Tech-List:").append("\n");
-        sb.append("Tag TechList: ").append(Arrays.toString(techList)).append("\n");
-        if (identifyUltralightFamily(nfcA)) {
-            sb.append("The Tag seems to be a MIFARE Ultralight Family tag").append("\n");
-            isTagUltralight = true;
         } else {
-            sb.append("The Tag IS NOT a MIFARE Ultralight tag").append("\n");
-            sb.append("** End of Processing **").append("\n");
-            isTagUltralight = false;
-        }
-        writeToUiAppend(sb.toString());
-
-        // stop processing if not an Ultralight Family tag
-        if (!isTagUltralight) {
-            returnOnNotSuccess();
-            return;
+            Log.i(TAG, "isoDep is available");
         }
 
-        // go through all sectors
+        byte[] tagId = isoDep.getTag().getId();
+        writeToUiAppend("TagId: " + bytesToHexNpe(tagId));
+
         try {
-            nfcA.connect();
-            writeToUiAppend("This is an Ultralight C tag with 48 pages = 192 bytes memory");
+            isoDep.connect();
+            byte[] command, response;
 
-            if (rbNoAuth.isChecked()) {
-                writeToUiAppend("No Authentication requested");
-                authSuccess = true;
-            } else if (rbDefaultAuth.isChecked()) {
-                writeToUiAppend("Authentication with Default Key requested");
-                //authSuccess = doAuthenticateUltralightCDefault();
-                //byte[] defaultKey = "BREAKMEIFYOUCAN!".getBytes(StandardCharsets.UTF_8);
-                //authSuccess = authenticateUltralightC(nfcA, defaultKey);
-                authSuccess = authenticateUltralightC(nfcA, defaultAuthKey);
-                writeToUiAppend("authenticateUltralightC with defaultAuthKey success: " + authSuccess);
+            String aidString = "F22334455667";
+            System.out.println(("aidString: ###" + aidString + "###"));
+            byte[] aid = Utils.hexStringToByteArray(aidString);
+            command = selectApdu(aid);
+            response = isoDep.transceive(command);
+            writeToUiAppend("selectApdu with AID: " + bytesToHexNpe(command));
+            writeToUiAppend("selectApdu response: " + bytesToHexNpe(response));
+
+            if (response == null) {
+                writeToUiAppend("selectApdu with AID fails (null)");
             } else {
-                writeToUiAppend("Authentication with Custom Key requested");
-                authSuccess = authenticateUltralightC(nfcA, customAuthKey);
-                //authSuccess = doAuthenticateUltralightCCustom();
-                //authSuccess = authenticateUltralightC(nfcA, customAuthKey);
-                writeToUiAppend("authenticateUltralightC with customAuthKey success: " + authSuccess);
+                writeToUiAppend("response length: " + response.length + " data: " + bytesToHexNpe(response));
+                Log.i(TAG, "response: " + bytesToHexNpe(response));
             }
 
-            if (!authSuccess) {
-                writeToUiAppend("The authentication was not successful, operation aborted.");
-                returnOnNotSuccess();
-                return;
-            }
+            // asking for data in file 01
+            byte[] file01 = hexStringToByteArray("01");
+            command = getDataApdu(file01);
+            response = isoDep.transceive(command);
+            writeToUiAppend("getDataApdu with file01: " + bytesToHexNpe(command));
+            writeToUiAppend("response: " + bytesToHexNpe(response));
 
-            // increase the counter value if requested
-            if (rbNoCounterIncrease.isChecked()) {
-                writeToUiAppend("No Counter Increase requested");
+            if (response == null) {
+                writeToUiAppend("getDataApdu with file01 fails (null)");
             } else {
-                writeToUiAppend("Counter Increase requested");
-                if (!authSuccess) {
-                    writeToUiAppend("Previous Auth was not successful or not done, skipped");
-                } else {
-                    success = increaseCounterValueByOne(nfcA);
-                    writeToUiAppend("Status of increaseCounterValueByOne command to page 41: " + success);
-                }
+                writeToUiAppend("response length: " + response.length + " data: " + bytesToHexNpe(response));
+            }
+            // verify response
+            if (checkResponse(response)) {
+                writeToUiAppend(new String(returnDataBytes(response), StandardCharsets.UTF_8));
+                Log.i(TAG, "response: " + bytesToHexNpe(returnDataBytes(response)));
+            } else {
+                writeToUiAppend("The tag returned NOT OK");
+                Log.i(TAG, "The tag returned NOT OK");
             }
 
-            // get the current counter
-            int counterValue = getCounterValue(nfcA);
-            writeToUiAppend("Current Counter Value: " + counterValue);
-
-            // read complete memory with colored data
-            byte[] memoryContent = readCompleteContent(nfcA);
-            String memoryDumpString = HexDumpOwn.prettyPrint(memoryContent);
-
-            SpannableString spanString = new SpannableString(memoryDumpString);
-            // UID = RED
-            spanString.setSpan(new BackgroundColorSpan(Color.RED), 10, 18, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            spanString.setSpan(new BackgroundColorSpan(Color.RED), 22, 33, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            // Lock Bytes = CYAN
-            spanString.setSpan(new BackgroundColorSpan(Color.CYAN), 50, 55, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            spanString.setSpan(new BackgroundColorSpan(Color.CYAN), (20 * 34) + 10, (20 * 34) + 15, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            // OTP = YELLOW
-            spanString.setSpan(new BackgroundColorSpan(Color.YELLOW), (1 * 34) + 22, (1 * 34) + 33, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            // User Memory = GREEN
-            for (int i = 0; i < 18; i++) {
-                spanString.setSpan(new BackgroundColorSpan(Color.GREEN), ((i + 2) * 34) + 10, ((i + 2) * 34) + 33, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            }
-            // Counter = Magenta
-            spanString.setSpan(new BackgroundColorSpan(Color.MAGENTA), (20 * 34) + 22, (20 * 34) + 27, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            // Authentication Configuration
-            spanString.setSpan(new BackgroundColorSpan(Color.LTGRAY), (21 * 34) + 10, (21 * 34) + 33, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            // Authentication Keys
-            spanString.setSpan(new BackgroundColorSpan(Color.GRAY), (22 * 34) + 10, (22 * 34) + 33, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            spanString.setSpan(new BackgroundColorSpan(Color.GRAY), (23 * 34) + 10, (23 * 34) + 33, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-
-            StringBuilder sbL = new StringBuilder();
-            sbL.append("Colored Data Legend").append("\n");
-            sbL.append("Tag UID").append("\n");
-            sbL.append("Lock Bytes").append("\n");
-            sbL.append("One Time Programming Area").append("\n");
-            sbL.append("User Memory Area").append("\n");
-            sbL.append("16-Bit Counter").append("\n");
-            sbL.append("Authentication Configuration").append("\n");
-            sbL.append("Authentication Keys").append("\n");
-
-            SpannableString spanLegendString = new SpannableString(sbL.toString());
-            spanLegendString.setSpan(new BackgroundColorSpan(Color.RED), 20, 27, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            spanLegendString.setSpan(new BackgroundColorSpan(Color.CYAN), 28, 38, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            spanLegendString.setSpan(new BackgroundColorSpan(Color.YELLOW), 39, 64, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            spanLegendString.setSpan(new BackgroundColorSpan(Color.GREEN), 65, 81, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            spanLegendString.setSpan(new BackgroundColorSpan(Color.MAGENTA), 82, 96, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            spanLegendString.setSpan(new BackgroundColorSpan(Color.LTGRAY), 97, 125, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            spanLegendString.setSpan(new BackgroundColorSpan(Color.GRAY), 126, 145, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    readSpan.setText(spanString);
-                    readSpanLegend.setText(spanLegendString);
-                }
-            });
-
-            nfcA.close();
+            isoDep.close();
         } catch (IOException e) {
             writeToUiAppend("IOException on connection: " + e.getMessage());
+            Log.e(TAG, "IOException on connection: " + e.getMessage());
             e.printStackTrace();
         } catch (Exception e) {
             writeToUiAppend("Exception on connection: " + e.getMessage());
+            Log.e(TAG, "Exception on connection: " + e.getMessage());
             e.printStackTrace();
         }
-*/
+
         writeToUiFinal(readResult);
         playDoublePing();
         setLoadingLayoutVisibility(false);
         doVibrate(getActivity());
-        reconnect(nfcA);
     }
 
     private void returnOnNotSuccess() {
@@ -291,21 +199,61 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
         mNfcAdapter.disableReaderMode(this.getActivity());
     }
 
-    private void reconnect(NfcA nfcA) {
-        // this is just an advice - if an error occurs - close the connection and reconnect the tag
-        // https://stackoverflow.com/a/37047375/8166854
-        try {
-            nfcA.close();
-            Log.d(TAG, "Close NfcA");
-        } catch (Exception e) {
-            Log.e(TAG, "Exception on Close NfcA: " + e.getMessage());
+    // https://stackoverflow.com/a/51338700/8166854
+    private byte[] selectApdu(byte[] aid) {
+        byte[] commandApdu = new byte[6 + aid.length];
+        commandApdu[0] = (byte) 0x00;  // CLA
+        commandApdu[1] = (byte) 0xA4;  // INS
+        commandApdu[2] = (byte) 0x04;  // P1
+        commandApdu[3] = (byte) 0x00;  // P2
+        commandApdu[4] = (byte) (aid.length & 0x0FF);       // Lc
+        System.arraycopy(aid, 0, commandApdu, 5, aid.length);
+        commandApdu[commandApdu.length - 1] = (byte) 0x00;  // Le
+        return commandApdu;
+    }
+
+    /**
+     * getDataApdu is asking for data in file
+      * @param file is the identifier on the (emulated) tag
+     * @return
+     */
+    private byte[] getDataApdu(byte[] file) {
+        byte[] commandApdu = new byte[6 + file.length];
+        commandApdu[0] = (byte) 0x00;  // CLA
+        commandApdu[1] = (byte) 0xCA;  // INS
+        commandApdu[2] = (byte) 0x00;  // P1
+        commandApdu[3] = (byte) 0x00;  // P2
+        commandApdu[4] = (byte) (file.length & 0x0FF);       // Lc
+        System.arraycopy(file, 0, commandApdu, 5, file.length);
+        commandApdu[commandApdu.length - 1] = (byte) 0x00;  // Le
+        return commandApdu;
+    }
+
+    /**
+     * checks if the response has an 0x'9000' at the end means success
+     * and the method returns true.
+     * if any other trailing bytes show up the method returns false
+     *
+     * @param data
+     * @return
+     */
+    private boolean checkResponse(@NonNull byte[] data) {
+        // simple sanity check
+        if (data.length < 2) {
+            return false;
+        } // not ok
+        int status = ((0xff & data[data.length - 2]) << 8) | (0xff & data[data.length - 1]);
+        if (status == 0x9000) {
+            return true;
+        } else {
+            return false;
         }
-        try {
-            Log.d(TAG, "Reconnect NfcA");
-            nfcA.connect();
-        } catch (Exception e) {
-            Log.e(TAG, "Exception on Reconnect NfcA: " + e.getMessage());
-        }
+    }
+
+    private byte[] returnDataBytes(byte[] data) {
+        if (data == null) return null;
+        if (data.length < 3) return null;
+        return Arrays.copyOfRange(data, 0, (data.length - 2));
     }
 
     /**

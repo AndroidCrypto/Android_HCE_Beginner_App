@@ -2,23 +2,13 @@
     <string name="app_name">HCE Beginner App</string>
     <string name="servicedesc">HCE Service Beginner</string>
     <string name="aiddescription">HCE AID Description</string>
+    <string name="aidsimple">F22334455667</string>
     <string name="home_description">This application emulates an NFC tag ("Writer") and reads the received data ("Reader") on another device.</string>
     <string name="home_fragments">There are 3 icons to click on:\n1 home = this page\n2 send data with HCE to another device\n3 read data = receives the data from the HCE emulated NFC tag</string>
     <string name="header_read">This app works with an emulated NFC tag for reading</string>
-    <string name="description_read">This example expects a MIFARE Ultralight type tag.\n\nWhen a tag is discovered the data from all records will be read.</string>
-    <string name="header_read_counter">Read the counter</string>
-    <string name="description_read_counter">This example reads an Ultralight C tag type and shows the value of the counter(s).\n\nWhen a tag is discovered the data from all records will be read.</string>
+    <string name="description_read">This example expects an emulated NFV tag using the AID F22334455667.\n\nWhen a tag is discovered the data from file 01 will be read.</string>
     <string name="nfc_result">NFC read result</string>
     <string name="header_write">This app works with an emulated NFC tag for writing</string>
     <string name="description_write">This example sends/writes data by HCE emulating an NFC tag</string>
     <string name="action_licenses">Used material and their licenses</string>
-    <string name="header_write_counter">Increment the value of the counter</string>
-    <string name="description_write_counter">This example increases the counter on an Ultralight C tag type and shows the value of the counter.\n\nWhen a tag is discovered the counter will be increased without any further confirmation (if selected).</string>
-    <string name="write_counter_warning">The increasing of a counter is not reversible and not resettable, so please act with caution</string>
-    <string name="description_write_page">Memory Protection: Select the page from where an authentication is required for writing or reading. Using \'48\' disables memory protection.</string>
-    <string name="description_memory_protection"><![CDATA[Select if the  memory protection is for write access only or write & read access]]></string>
-    <string name="description_write_configuration">This example expects a MIFARE Ultralight C type tag. It writes a new memory protection configuration to the tag.\n\nWhen a tag is discovered the new data will be written without any confirmation.</string>
-    <string name="description_change_password">Change the password of the tag, select the new Default or a Custom password</string>
-    <string name="description_memory_clearing">Select if the user memory should get cleared or not</string>
-
 </resources>

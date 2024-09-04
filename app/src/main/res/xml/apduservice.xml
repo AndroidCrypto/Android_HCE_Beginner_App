@@ -4,7 +4,7 @@
     android:requireDeviceUnlock="false">
     <aid-group android:description="@string/aiddescription"
         android:category="other">
-        <!-- Sample for the demo application -->
-        <aid-filter android:name="D2760000850101" />
+        <!-- Sample for the demo application F2233445566 -->
+        <aid-filter android:name="@string/aidsimple"/>
     </aid-group>
 </host-apdu-service>

@@ -114,7 +114,13 @@ public class WriteFragment extends Fragment implements NfcAdapter.ReaderCallback
         rbCustomAuth = getView().findViewById(R.id.rbCustomAuth);
         loadingLayout = getView().findViewById(R.id.loading_layout);
 
-        mNfcAdapter = NfcAdapter.getDefaultAdapter(getView().getContext());
+        //mNfcAdapter = NfcAdapter.getDefaultAdapter(getView().getContext());
+
+        Intent intent = new Intent(view.getContext(), MyHostApduService.class);
+        intent.putExtra("ndefMessage", "abc");
+        Toast.makeText(view.getContext(), "This message is send as NDEF message: " + "abc", Toast.LENGTH_SHORT).show();
+        requireActivity().startService(intent);
+
 
         addTimestampToData.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
