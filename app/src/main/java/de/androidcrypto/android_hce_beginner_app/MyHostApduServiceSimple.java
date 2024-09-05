@@ -22,28 +22,11 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-
-/**
- * This is a sample APDU Service which demonstrates how to interface with the card emulation support
- * added in Android 4.4, KitKat.
- *
- * <p>This sample replies to any requests sent with the string "Hello World". In real-world
- * situations, you would need to modify this code to implement your desired communication
- * protocol.
- *
- * <p>This sample will be invoked for any terminals selecting AIDs of 0xF11111111, 0xF22222222, or
- * 0xF33333333. See src/main/res/xml/aid_list.xml for more details.
- *
- * <p class="note">Note: This is a low-level interface. Unlike the NdefMessage many developers
- * are familiar with for implementing Android Beam in apps, card emulation only provides a
- * byte-array based communication channel. It is left to developers to implement higher level
- * protocol support as needed.
- */
 public class MyHostApduServiceSimple extends HostApduService {
     private static final String TAG = "HceBeginnerApp";
     // ISO-DEP command HEADER for selecting an AID.
     // Format: [Class | Instruction | Parameter 1 | Parameter 2]
-    private static final byte[] SELECT_APPLICATION_APDU = hexStringToByteArray("00A4040007D276000085010100");
+    private static final byte[] SELECT_APPLICATION_APDU = hexStringToByteArray("00a4040006f2233445566700");
     private static final String GET_DATA_APDU_HEADER = "00CA0000";
     private static final String PUT_DATA_APDU_HEADER = "00DA0000";
     // "OK" status word sent in response to SELECT AID command (0x9000)
@@ -54,9 +37,6 @@ public class MyHostApduServiceSimple extends HostApduService {
     private byte[] fileContent01 = "HCE Beginner App 1".getBytes(StandardCharsets.UTF_8);
     private byte[] fileContent02 = "HCE Beginner App 2".getBytes(StandardCharsets.UTF_8);
     private byte[] fileContentUnknown = "HCE Beginner App Unknown".getBytes(StandardCharsets.UTF_8);
-    // Commands for each step
-
-
 
     /**
      * Called if the connection to the NFC card is lost, in order to let the application know the
@@ -94,27 +74,6 @@ public class MyHostApduServiceSimple extends HostApduService {
         // The following flow is based on Appendix E "Example of Mapping Version 2.0 Command Flow"
         // in the NFC Forum specification
         Log.i(TAG, "Received APDU: " + byteArrayToHexString(commandApdu));
-/*
-        if (commandApdu != null) {
-            Log.i(TAG, "Return SELECT_OK_SW");
-            return SELECT_OK_SW;
-        }
-
- */
-        /*
-        else {
-            Log.i(TAG, "Return UNKNOWN_CMD_SW");
-            return UNKNOWN_CMD_SW;
-        }
-
-         */
-
-        // see https://github.com/underwindfall/NFCAndroid/blob/master/app/src/main/java/com/qifan/nfcbank/cardEmulation/KHostApduService.kt
-        /*
-        if (commandApdu.sliceArray(0..1).contentEquals(NDEF_READ_BINARY)) {
-            // do nothing
-        }
-         */
 
         // First command: Application select (Section 5.5.2 in NFC Forum spec)
         if (Arrays.equals(SELECT_APPLICATION_APDU, commandApdu)) {
