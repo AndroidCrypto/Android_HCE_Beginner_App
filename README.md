@@ -106,7 +106,7 @@ and will stop any further communication with out app.
 To understand the commands between an NFC reader and a tag (real or emulated one) you should get familiar with the ISO 7816-4 commands. 
 In this tutorial I'm using just 3 of them:
 
-**SELECT APDU**:
+**SELECT APPLICATION APDU**:
 
 **GET DATA APDU**:
 
@@ -141,11 +141,29 @@ The only way would be to store the UID in a "read only" file on the tag to get a
 These are the basic steps you need to implement a HCE application on your device:
 
 1) Create a HCE service class that is extending the **HostApduService**
-2) Register your HCE service in AndroidManifest.xml
-3) Create an XML-file in your resources that defines the application identifier your HCE application in working on
-4) Register the XML-file in AndroidManifest.xml to link the AID with your own HCE service
+2) Register your HCE service in **AndroidManifest.xml**
+3) Create an **XML-file in your resources** that defines the application identifier your HCE application in working on ("apduservice.xml")
+4) Register the XML-file in **AndroidManifest.xml** to link the AID with your own HCE service
 
 **That's all ?** - yes we don't need more steps to build a HCE application.
 
 
+```plaintext
+TagId: 08ca20a8
+selectApdu with AID: 00a4040006f2233445566700
+selectApdu response: 0000
+response length: 2 data: 0000
+getDataApdu with file01: 00ca0000010100
+response length: 20 data: 48434520426567696e6e65722041707020319000
+HCE Beginner App 1
+getDataApdu with file02: 00ca0000010200
+response length: 20 data: 48434520426567696e6e65722041707020329000
+HCE Beginner App 2
+putDataApdu with file02: 00da00001d024e657720436f6e74656e7420696e2066696c654e756d62657220303200
+response length: 2 data: 9000
+SUCCESS
+getDataApdu with file02: 00ca0000010200
+response length: 30 data: 4e657720436f6e74656e7420696e2066696c654e756d6265722030329000
+New Content in fileNumber 02
+```
 

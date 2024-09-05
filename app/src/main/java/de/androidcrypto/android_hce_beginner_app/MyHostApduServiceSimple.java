@@ -14,16 +14,10 @@ package de.androidcrypto.android_hce_beginner_app;/*
  * limitations under the License.
  */
 
-import android.content.Context;
-import android.nfc.NdefMessage;
-import android.nfc.NdefRecord;
 import android.nfc.cardemulation.HostApduService;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
-import android.widget.Toast;
 
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -47,13 +41,9 @@ import java.util.Arrays;
  */
 public class MyHostApduServiceSimple extends HostApduService {
     private static final String TAG = "HceBeginnerApp";
-    private static final String BEGINNER_APP_AID = "F22334455667";
-    // AID for our loyalty card service.
-    private static final String SAMPLE_LOYALTY_CARD_AID = "F222222222";
     // ISO-DEP command HEADER for selecting an AID.
     // Format: [Class | Instruction | Parameter 1 | Parameter 2]
-    private static final String SELECT_APDU_HEADER = "00A40400";
-    // Format: [Class | Instruction | Parameter 1 | Parameter 2]
+    private static final byte[] SELECT_APPLICATION_APDU = hexStringToByteArray("00A4040007D276000085010100");
     private static final String GET_DATA_APDU_HEADER = "00CA0000";
     private static final String PUT_DATA_APDU_HEADER = "00DA0000";
     // "OK" status word sent in response to SELECT AID command (0x9000)
@@ -61,14 +51,12 @@ public class MyHostApduServiceSimple extends HostApduService {
     // "UNKNOWN" status word sent in response to invalid APDU command (0x0000)
     private static final byte[] UNKNOWN_CMD_SW = hexStringToByteArray("0000");
 
-
     private byte[] fileContent01 = "HCE Beginner App 1".getBytes(StandardCharsets.UTF_8);
     private byte[] fileContent02 = "HCE Beginner App 2".getBytes(StandardCharsets.UTF_8);
     private byte[] fileContentUnknown = "HCE Beginner App Unknown".getBytes(StandardCharsets.UTF_8);
     // Commands for each step
 
 
-    private static final byte[] SELECT_APDU_TagInfo = hexStringToByteArray("00A4040007D276000085010100");
 
     /**
      * Called if the connection to the NFC card is lost, in order to let the application know the
@@ -129,8 +117,8 @@ public class MyHostApduServiceSimple extends HostApduService {
          */
 
         // First command: Application select (Section 5.5.2 in NFC Forum spec)
-        if (Arrays.equals(SELECT_APDU_TagInfo, commandApdu)) {
-            Log.i(TAG, "This is: 01 SELECT_APDU_TagInfo");
+        if (Arrays.equals(SELECT_APPLICATION_APDU, commandApdu)) {
+            Log.i(TAG, "This is: 01 SELECT_APPLICATION_APDU");
             return SELECT_OK_SW;
 
         // Second command: GetData command, here returning any data and not from file01
@@ -191,30 +179,6 @@ public class MyHostApduServiceSimple extends HostApduService {
             Log.wtf(TAG, "processCommandApdu() | I don't know what's going on!!!.");
         //return "Can I help you?".getBytes();
         return UNKNOWN_CMD_SW;
-    }
-
-
-    /**
-     * Build APDU for SELECT AID command. This command indicates which service a reader is
-     * interested in communicating with. See ISO 7816-4.
-     *
-     * @param aid Application ID (AID) to select
-     * @return APDU for SELECT AID command
-     */
-    public static byte[] buildSelectApdu(String aid) {
-        // Format: [CLASS | INSTRUCTION | PARAMETER 1 | PARAMETER 2 | LENGTH | DATA]
-        return hexStringToByteArray(SELECT_APDU_HEADER + String.format("%02X",
-                aid.length() / 2) + aid);
-    }
-
-    /**
-     * Build APDU for GET_DATA command. See ISO 7816-4.
-     *
-     * @return APDU for SELECT AID command
-     */
-    public static byte[] buildGetDataApdu() {
-        // Format: [CLASS | INSTRUCTION | PARAMETER 1 | PARAMETER 2 | LENGTH | DATA]
-        return hexStringToByteArray(GET_DATA_APDU_HEADER + "0FFF");
     }
 
     boolean arraysStartWith(byte[] completeArray, byte[] compareArray) {

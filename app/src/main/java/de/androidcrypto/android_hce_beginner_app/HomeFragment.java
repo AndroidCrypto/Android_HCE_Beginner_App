@@ -36,7 +36,6 @@ public class HomeFragment extends Fragment {
         // Required empty public constructor
     }
 
-
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -55,7 +54,6 @@ public class HomeFragment extends Fragment {
         return fragment;
     }
 
-    private TextView textViewTrue, textViewFalse;
     private Button licenses;
 
     @Override
@@ -70,8 +68,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        textViewTrue = getView().findViewById(R.id.textViewTrue);
-        textViewFalse = getView().findViewById(R.id.textViewFalse);
         licenses = getView().findViewById(R.id.btnLicenses);
         licenses.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,17 +76,6 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        if (checkAndroidDeviceIsHceReady()) {
-            String messageTrue = "Congratulations: This Android device can emulate an NFC tag by using HCE !";
-            textViewTrue.setVisibility(View.VISIBLE);
-            textViewTrue.setText(messageTrue);
-            textViewFalse.setVisibility(View.GONE);
-        } else {
-            String messageFalse = "Failure: This Android device can NOT emulate an NFC tag by using HCE";
-            textViewTrue.setVisibility(View.GONE);
-            textViewFalse.setVisibility(View.VISIBLE);
-            textViewFalse.setText(messageFalse);
-        }
     }
 
     @Override
@@ -115,21 +100,6 @@ public class HomeFragment extends Fragment {
                 .setView(view)
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
-    }
-
-    // todo verify result as it shows false !
-    // taken from https://stackoverflow.com/a/39707108/8166854 by Michael Roland
-    // CardEmulation class description: https://developer.android.com/reference/android/nfc/cardemulation/CardEmulation.html
-    private boolean checkAndroidDeviceIsHceReady() {
-        boolean isDefault = false;
-        if (getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_NFC_HOST_CARD_EMULATION)) {
-            isDefault  = CardEmulation.getInstance(NfcAdapter.getDefaultAdapter(getActivity()))
-                    .isDefaultServiceForCategory(
-                            new ComponentName(getActivity(), KHostApduService.class),
-                            CardEmulation.CATEGORY_PAYMENT);
-                            //CardEmulation.CATEGORY_OTHER);
-        }
-        return isDefault;
     }
 
 }

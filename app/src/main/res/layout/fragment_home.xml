@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="88dp"
+            android:layout_marginTop="118dp"
             android:layout_marginEnd="8dp"
             android:background="@drawable/share_rounded_corner_light_blue_with_border_error"
             android:padding="10dp"
@@ -24,36 +24,6 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:visibility="visible" />
-
-        <TextView
-            android:id="@+id/textViewTrue"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/share_rounded_corner_with_border_true"
-            android:padding="10dp"
-            android:textAlignment="center"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:visibility="gone"
-            />
-
-        <TextView
-            android:id="@+id/textViewFalse"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/share_rounded_corner_with_border_error"
-            android:padding="10dp"
-            android:textAlignment="center"
-            android:visibility="gone"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            />
 
         <TextView
             android:id="@+id/header_home2"

@@ -6,9 +6,9 @@
     <string name="home_description">This application emulates an NFC tag ("Writer") and reads the received data ("Reader") on another device.</string>
     <string name="home_fragments">There are 3 icons to click on:\n1 home = this page\n2 send data with HCE to another device\n3 read data = receives the data from the HCE emulated NFC tag</string>
     <string name="header_read">This app works with an emulated NFC tag for reading</string>
-    <string name="description_read">This example expects an emulated NFV tag using the AID F22334455667.\n\nWhen a tag is discovered the data from file 01 will be read.</string>
+    <string name="description_read">This example expects an emulated NFC tag using the AID F22334455667.\n\nWhen a tag is discovered the data from files 01 and 02 will be read.</string>
     <string name="nfc_result">NFC read result</string>
     <string name="header_write">This app works with an emulated NFC tag for writing</string>
-    <string name="description_write">This example sends/writes data by HCE emulating an NFC tag</string>
+    <string name="description_write">This example sends (writes) data by HCE emulating an NFC tag using the AID F22334455667</string>
     <string name="action_licenses">Used material and their licenses</string>
 </resources>

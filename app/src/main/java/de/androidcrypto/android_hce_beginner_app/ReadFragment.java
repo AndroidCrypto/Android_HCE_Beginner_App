@@ -103,7 +103,7 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
     }
 
     // This method is running in another thread when a card is discovered
-    // !!!! This method cannot cannot direct interact with the UI Thread
+    // This method cannot cannot direct interact with the UI Thread
     // Use `runOnUiThread` method to change the UI from this method
     @Override
     public void onTagDiscovered(Tag tag) {
@@ -138,29 +138,23 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
             byte[] command, response;
 
             String aidString = "F22334455667";
-            System.out.println(("aidString: ###" + aidString + "###"));
             byte[] aid = Utils.hexStringToByteArray(aidString);
             command = selectApdu(aid);
             response = isoDep.transceive(command);
             writeToUiAppend("selectApdu with AID: " + bytesToHexNpe(command));
-            writeToUiAppend("selectApdu response: " + bytesToHexNpe(response));
-
             if (response == null) {
-                writeToUiAppend("selectApdu with AID fails (null)");
+                writeToUiAppend("selectApdu with AID fails (null), aborted");
+                return;
             } else {
                 writeToUiAppend("response length: " + response.length + " data: " + bytesToHexNpe(response));
                 Log.i(TAG, "response: " + bytesToHexNpe(response));
             }
 
             // asking for data in file 01
-            //byte[] file01 = hexStringToByteArray("01");
-            //command = getDataApdu(file01);
             int fileNumber01 = 1;
             command = getDataApdu(fileNumber01);
             response = isoDep.transceive(command);
             writeToUiAppend("getDataApdu with file01: " + bytesToHexNpe(command));
-            writeToUiAppend("response: " + bytesToHexNpe(response));
-
             if (response == null) {
                 writeToUiAppend("getDataApdu with file01 fails (null)");
             } else {
@@ -180,8 +174,6 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
             command = getDataApdu(fileNumber02);
             response = isoDep.transceive(command);
             writeToUiAppend("getDataApdu with file02: " + bytesToHexNpe(command));
-            writeToUiAppend("response: " + bytesToHexNpe(response));
-
             if (response == null) {
                 writeToUiAppend("getDataApdu with file02 fails (null)");
             } else {
@@ -197,14 +189,10 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
             }
 
             // write data to fileNumber 02
-
-            // command = getDataApdu(filenumber02);
             byte[] dataToWrite = "New Content in fileNumber 02".getBytes(StandardCharsets.UTF_8);
             command = putDataApdu(fileNumber02, dataToWrite);
             response = isoDep.transceive(command);
             writeToUiAppend("putDataApdu with file02: " + bytesToHexNpe(command));
-            writeToUiAppend("response: " + bytesToHexNpe(response));
-
             if (response == null) {
                 writeToUiAppend("putDataApdu with file02 fails (null)");
             } else {
@@ -223,8 +211,6 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
             command = getDataApdu(fileNumber02);
             response = isoDep.transceive(command);
             writeToUiAppend("getDataApdu with file02: " + bytesToHexNpe(command));
-            writeToUiAppend("response: " + bytesToHexNpe(response));
-
             if (response == null) {
                 writeToUiAppend("getDataApdu with file02 fails (null)");
             } else {
@@ -265,7 +251,6 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
         mNfcAdapter.disableReaderMode(this.getActivity());
     }
 
-    // https://stackoverflow.com/a/51338700/8166854
     private byte[] selectApdu(byte[] aid) {
         byte[] commandApdu = new byte[6 + aid.length];
         commandApdu[0] = (byte) 0x00;  // CLA
@@ -341,6 +326,11 @@ public class ReadFragment extends Fragment implements NfcAdapter.ReaderCallback 
         }
     }
 
+    /**
+     * Return the data without the attached status bytes
+     * @param data
+     * @return
+     */
     private byte[] returnDataBytes(byte[] data) {
         if (data == null) return null;
         if (data.length < 3) return null;
