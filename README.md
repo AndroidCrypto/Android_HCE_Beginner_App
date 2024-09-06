@@ -106,13 +106,92 @@ and will stop any further communication with out app.
 To understand the commands between an NFC reader and a tag (real or emulated one) you should get familiar with the ISO 7816-4 commands. 
 In this tutorial I'm using just 3 of them:
 
-**SELECT APPLICATION APDU**:
+**SELECT APPLICATION APDU**: The "Select Application" APDU is the starting point for every communication with an emulated (HCE driven) NFC tag. 
+If you miss to send this command your HCE tag won't recognize the request and will not answer or react in any way. The second fact is: as I'm 
+using a proprietary AID for this app an NFC reader like the TagInfo app by NXP does not know about this specific AID you cannot read the HCE 
+tag with regular NFC reader apps. The "Select Application APDU" for the HCE emulated tag of the Beginner App is "00A4040006F2233445566700h". 
+To understand the response see the chapter APDU Responses.
 
-**GET DATA APDU**:
+**GET DATA APDU**: The "Get Data" APDU is used to request data from the tag. In most more complex NFC tags the data is organized within files 
+like the one you know from your home computer. The file system is organized by using file numbers that are part of the command:
 
-**PUT DATA APDU**:
+```vplaintext 
+Get Data APDU: 00ca0000010100
+I'm splitting the bytes into their meaning (all data are hex encoded):
 
-see: https://cardwerk.com/smart-card-standard-iso7816-4-section-6-basic-interindustry-commands/
+00: CLA = Class of instruction, length 1 byte, the start of the command sequence
+CA: INS = Instruction, length 1 byte, is the GET DATA command
+00: P 1 = Selection Control 1, length 1 byte, in range '0000'-'003F' it is RFU
+00: P 2 = Selection Control 2, length 1 byte, in range '0000'-'003F' it is RFU
+01: LC Field: Length of the following data, length 1 byte, number of following data bytes
+01: Data: Data send together with the command, here the 1 byte long file number
+00: Le field: Empty or maximum length of data expected in response
+```
+The "Get Data" APDU for reading the content of file 01 from the HCE emulated tag of the Beginner App is "00ca0000010100h". To understand 
+the response see the chapter APDU Responses.
+
+**PUT DATA APDU**: The "Put Data" APDU is used to send data to the tag. In most more complex NFC tags the data is organized within files 
+like the one you know from your home computer. The file system is organized by using file numbers that are part of the command, together 
+with data that gets stored:
+
+```plaintext
+PUT DATA APDU: 00da00001d024e65..303200
+I'm splitting the bytes into their meaning (all data are hex encoded):
+
+00: CLA = Class of instruction, length 1 byte, the start of the command sequence
+DA: INS = Instruction, length 1 byte, is the PUT DATA command
+00: P 1 = Selection Control 1, length 1 byte, in range '0000'-'003F' it is RFU
+00: P 2 = Selection Control 2, length 1 byte, in range '0000'-'003F' it is RFU
+1d: LC Field: Length of the following data, length 1 byte, number of following data bytes
+1dh = 29 bytes of data following
+01: Data: Data send together with the command, here the 1 byte long file number (here file 02)
+4e65..3032: Data: Data send together with the command, here the 28 bytes long data
+00: Le field: Empty or maximum length of data expected in response
+```
+
+In this command the data consists of 2 single data fields the 1 byte long file number and the data (here 28 bytes). I'm sending this string:
+
+```plaintext
+dataToWrite in UTF-8 encoding: New Content in fileNumber 02
+dataToWrite in hex encoding: 4e657720436f6e74656e7420696e2066696c654e756d626572203032
+```
+The "PUT DATA" APDU for the HCE emulated tag of the Beginner App is "00da00001d024e657720436f6e74656e7420696e2066696c654e756d62657220303200h". 
+To understand the response see the chapter APDU Responses.
+
+**APDU Responses**: To understand the APDU response we need to divide all commands in one of the two categories:
+
+- send the command only or send the command together with data (e.g. PUT DATA APDU)
+- send the command (together with specifying parameter like the file number) and receive data in return (e.g. GET DATA APDU).
+
+- Send the command only or with data: If the card accepts the command it simply answers with a 2 bytes long code: "9000h":
+
+```plaintext 
+OK-Response: 9000h
+90 = SW 1 = Status byte 1 = Command processing status
+00 = SW 2 = Status byte 2 = Command processing qualifier
+```
+
+If the bytes are "9000h" the command was "Accepted". Every other response should be treated as "Not Accepted". The ISO can define a more 
+specified response for different cases, but in our case we just check for "9000h" or not "9000h".
+ 
+- Send the command and receive data in return: In this case the returned data is a little bit different. In case of command acceptance we 
+- receive the data, concatenated with the two Status bytes. This is the sample response to the "Get Data" APDU:
+
+```plaintext 
+Get Data APDU: 00ca0000010100
+Response: 48434520426567696e6e65722041707020319000
+The complete response is 20 bytes long:
+Data (18 bytes):  48434520426567696e6e6572204170702031
+Status Bytes 1+2: 9000
+The Data is this String: HCE Beginner App 1
+```
+
+In case of success we get the data, followed by the 2 bytes long Status bytes. In case of failure (e.g. wrong command length) the tag answers 
+with "0000h". The Beginner app knows a third response case: in case the file number does not exist (e.g. file number 3) the tag is returning 
+the string "HCE Beginner App Unknown", followed by the OK-Status bytes "9000h". Every other response should be treated as "Not Accepted". The 
+ISO can define a more specified response for different cases, but in our case we just check for "9000h" or not "9000h".
+
+For more details about ABDU's see: https://cardwerk.com/smart-card-standard-iso7816-4-section-6-basic-interindustry-commands/
 
 PUT DATA command
 ```plaintext
@@ -147,6 +226,7 @@ These are the basic steps you need to implement a HCE application on your device
 
 **That's all ?** - yes we don't need more steps to build a HCE application.
 
+## Example output
 
 ```plaintext
 TagId: 08ca20a8
@@ -167,3 +247,18 @@ response length: 30 data: 4e657720436f6e74656e7420696e2066696c654e756d6265722030
 New Content in fileNumber 02
 ```
 
+## Some data regarding  the reader application
+
+The NFC reader application is designed to communicate with the HCE emulated tag. It will probably not work 
+with other (real or emulated) NFC tags as it uses a static, proprietary Application Identifier ("F22334455667").
+
+The reader is following this workflow:
+
+- connect to the HCE tag by sending the **Select Application APDU** command
+- send the **Get Data APDU** command to retrieve the content of file number 01 on the HCE tag
+- send the **Get Data APDU** command to retrieve the content of file number 02 on the HCE tag
+- send the **Put Data APDU** command to write a new string on file number 02 on the HCE tag
+- send the **Get Data APDU** command to retrieve the new content of file number 02 on the HCE tag
+- EOC - End of Communication
+
+Latest update: Sep. 6.th, 2024
