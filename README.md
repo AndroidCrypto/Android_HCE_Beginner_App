@@ -17,7 +17,7 @@ Android device. I'm describing step by step what requirements are to meet to tra
 **There will be no special features like emulating a complete NFC card**, but in the end you will understand what the 
 steps are to write your own app.
 
-This repository is accompanied by a tutorial on medium.com, please find the article here: ... will follow soon, please be patient
+This repository is accompanied by a tutorial on medium.com, please find the article here: https://medium.com/@androidcrypto/how-to-use-host-based-card-emulation-hce-in-android-a-beginner-tutorial-java-32974dd89529
 
 ## Requirements to follow the tutorial
 
