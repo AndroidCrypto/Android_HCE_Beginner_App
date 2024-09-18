@@ -262,3 +262,7 @@ The reader is following this workflow:
 - EOC - End of Communication
 
 Latest update: Sep. 6.th, 2024
+
+## License
+
+Android HCE Beginner Appis available under the MIT license. See the LICENSE.md file for more info.
