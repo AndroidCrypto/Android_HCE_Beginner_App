@@ -261,7 +261,7 @@ The reader is following this workflow:
 - send the **Get Data APDU** command to retrieve the new content of file number 02 on the HCE tag
 - EOC - End of Communication
 
-Latest update: Sep. 6.th, 2024
+Latest update: Sep. 18.th, 2024
 
 ## License
 
