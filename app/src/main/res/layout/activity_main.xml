@@ -1,24 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/main"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:gravity="center_horizontal">
 
-    <FrameLayout
-        android:id="@+id/fragment_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/bottom_navigation" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Emulador NFC (HCE)"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="30dp"/>
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Digite a Track (Hexadecimal):"
+        android:layout_gravity="start"
+        android:layout_marginBottom="5dp" />
+
+    <EditText
+        android:id="@+id/etTrackData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_gravity="bottom"
-        android:background="@color/colorPrimary"
-        app:itemIconTint="@android:color/white"
-        app:itemTextColor="@android:color/white"
-        app:menu="@menu/bottom_menu" />
-</RelativeLayout>
+        android:hint="Ex: D27600008501019000"
+        android:minHeight="48dp"
+        android:inputType="textNoSuggestions"
+        android:autofillHints="no" />
+
+    <Button
+        android:id="@+id/btnGravar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gravar Track na Memória"
+        android:layout_marginTop="10dp"/>
+
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Status: Aguardando..."
+        android:textAlignment="center"
+        android:textColor="#4CAF50"
+        android:textSize="16sp"/>
+
+</LinearLayout>

@@ -1,19 +1,17 @@
 plugins {
-    alias(libs.plugins.android.application)
+    id 'com.android.application'
 }
 
 android {
     namespace 'de.androidcrypto.android_hce_beginner_app'
-    compileSdk 34
+    compileSdk 34  // Atualizado para Android 14
 
     defaultConfig {
         applicationId "de.androidcrypto.android_hce_beginner_app"
-        minSdk 21
-        targetSdk 34
-        versionCode 1
-        versionName "1.0"
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        minSdk 26      // Android 8.0 (compatível com maioria)
+        targetSdk 34   // Atualizado para Android 14 (Obrigatório)
+        versionCode 2
+        versionName "2.0"
     }
 
     buildTypes {
@@ -29,12 +27,7 @@ android {
 }
 
 dependencies {
-
-    implementation libs.appcompat
-    implementation libs.material
-    implementation libs.activity
-    implementation libs.constraintlayout
-    testImplementation libs.junit
-    androidTestImplementation libs.ext.junit
-    androidTestImplementation libs.espresso.core
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 }

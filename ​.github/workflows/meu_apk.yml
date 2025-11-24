@@ -1,0 +1,26 @@
+name: Gerar APK Android
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v3
+
+      - name: Configurar Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Dar permissão ao Gradle
+        run: chmod +x gradlew
+
+      - name: Construir o APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload do APK Pronto
+        uses: actions/upload-artifact@v3
+        with:
+          name: MeuApp-NFC
+          path: app/build/outputs/apk/debug/app-debug.apk

@@ -1,69 +1,53 @@
 package de.androidcrypto.android_hce_beginner_app;
 
-import android.content.ComponentName;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.nfc.NfcAdapter;
-import android.nfc.cardemulation.CardEmulation;
-import android.os.Bundle;
-
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.fragment.app.Fragment;
-
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.navigation.NavigationBarView;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
+
+    EditText etTrackData;
+    Button btnGravar;
+    TextView tvStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        /*
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
-         */
+        // Busca os elementos do layout (que vamos criar no próximo passo)
+        etTrackData = findViewById(R.id.etTrackData); 
+        btnGravar = findViewById(R.id.btnGravar);     
+        tvStatus = findViewById(R.id.tvStatus);       
 
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-        //bottomNav.setOnNavigationItemSelectedListener(navListener);
-        bottomNav.setOnItemSelectedListener(navListener);
+        // 1. Recuperar track salva anteriormente
+        SharedPreferences prefs = getSharedPreferences("NfcData", MODE_PRIVATE);
+        // Valor padrão de exemplo
+        String savedTrack = prefs.getString("TRACK_DATA", "00A4040007F00102030405069000"); 
+        etTrackData.setText(savedTrack);
 
-        // as soon as the application opens the first
-        // fragment should be shown to the user
-        // in this case it is algorithm fragment
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeFragment()).commit();
+        // 2. Configura o botão de Gravar
+        btnGravar.setOnClickListener(view -> {
+            String newData = etTrackData.getText().toString().trim();
+            if (newData.isEmpty()) {
+                Toast.makeText(this, "A track não pode estar vazia!", Toast.LENGTH_SHORT).show();
+                return;
             }
 
-    private final NavigationBarView.OnItemSelectedListener navListener = item -> {
-        // By using switch we can easily get
-        // the selected fragment
-        // by using there id.
-        Fragment selectedFragment = null;
-        int itemId = item.getItemId();
-        if (itemId == R.id.home) {
-            selectedFragment = new HomeFragment();
-        } else if (itemId == R.id.read) {
-            selectedFragment = new ReadFragment();
-        } else if (itemId == R.id.write) {
-            selectedFragment = new WriteFragment();
-        }
+            // Salva na memória permanente (SharedPreferences)
+            SharedPreferences.Editor editor = getSharedPreferences("NfcData", MODE_PRIVATE).edit();
+            editor.putString("TRACK_DATA", newData);
+            editor.apply();
 
-        // It will help to replace the
-        // one fragment to other.
-        if (selectedFragment != null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, selectedFragment).commit();
-        }
-        return true;
-    };
-
-
+            tvStatus.setText("Track Gravada com Sucesso!\nPronto para aproximar da maquininha.");
+            Toast.makeText(this, "Dados NFC atualizados!", Toast.LENGTH_SHORT).show();
+        });
+        
+        // Exibe o status inicial
+        tvStatus.setText("Última Track carregada. Clique em Gravar para confirmar.");
+    }
 }
